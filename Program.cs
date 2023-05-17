@@ -1,176 +1,73 @@
 using System;
+
 class Program{
-    static void Main()
-    {
-        int rows = 1;
-        int colums = 1;
-        Stack<Tuple<int, int>> undoStack = new Stack<Tuple<int, int>>();
-        Stack<Tuple<int, int>> redoStack = new Stack<Tuple<int, int>>();
+    public void Main(string[]args){
+        int letters = int.Parse(Console.ReadLine());
+        int digits = int.Parse(Console.ReadLine());
+        string lastCode = new string('A',letters)+ new string('0',digits);
 
-        while(true)
-        {
-            int move = int.Parse(Console.ReadLine());
-            int x;
-            bool canMove = false;
+        int maximumProduct = (letters*26)*(digits*10);
+        int count = 0;
 
-            if(move==11)
-            {
+        string product = Console.ReadLine();
+        IDictionary<string, string> productID = new Dictionary<string, string>();
+        productID.Add(lastCode,product);
+
+        while(true){
+            product = Console.ReadLine();
+            if(product.ToLower()=="stop"){
                 break;
             }
-            else if(move==9 && undoStack.Count>0){
-                Tuple<int,int> temp = new Tuple<int,int>(rows,colums);
-                rows=undoStack.Peek().Item1; 
-                colums=undoStack.Peek().Item2;  
-                redoStack.Push(temp); undoStack.Pop();
+            if(count>=maximumProduct){
+                count = 0;
+                lastCode = new string('A', letters) + new string('0',digits);
+                productID.Add(lastCode,product);
                 continue;
             }
-            else if(move==10 && redoStack.Count>0){
-                Tuple<int,int> temp = new Tuple<int,int>(rows,colums);
-                rows=redoStack.Peek().Item1; 
-                colums=redoStack.Peek().Item2;
-                undoStack.Push(temp); redoStack.Pop();
-                continue;
-            }
-            else if(move!=9&&move!=10){ x = int.Parse(Console.ReadLine());
-                canMove = CheckMove(move,rows,colums,x);
-
-                if(!canMove){continue;}
-                Tuple<int,int> temp = new Tuple<int,int>(rows,colums);
-                undoStack.Push(temp);
-                Move(move,ref rows,ref colums,x); 
-                while(redoStack.Count>0){redoStack.Pop();}
+            string code = IncrementCode(lastCode, letters, digits);
+            productID.Add(code,product);
+            lastCode =code;
+        }
+        string searchCode = Console.ReadLine();
+        bool found = false;
+        foreach (KeyValuePair<string, string>kvp in productID){
+            if(searchCode == kvp.Key){
+                Console.WriteLine(kvp.Value);
+                found = true;
+                break;
             }
         }
-
-        Console.WriteLine(Convert.ToChar(colums-1+'A')+" "+rows);
+        if(!found){
+            Console.WriteLine("NotFound");
+        }
     }
-    static bool CheckMove(int action, int rows, int colums,int x)
-    {
-        if(action == 1)
-        {
-            if(rows + x <= 8)
-            {
-                return true;
+    public static string IncrementCode(string code, int letters, int digits){
+        char[] codeArray = code.ToCharArray();
+        int lastIndex = letters + digits-1;
+        for(int i = lastIndex;i>=0;i--){
+            char c = codeArray[i];
+            if(char.IsDigit(c)){
+                if(c=='9'){
+                    codeArray[i]='0';
+                    if(i==0){
+                        return null;
+                    }
+                }
+                else{
+                    codeArray[i] = (char)(c+1);
+                    break;
+                }
+            }
+            else if(char.IsLetter(c)){
+                if(c == 'z'){
+                    codeArray[i] = 'A';
+                }
+                else{
+                    codeArray[i] = (char)(c+1);
+                    break;
+                }
             }
         }
-        else if(action == 2)
-        {
-            if(rows + x <= 8 && colums - 1 > 0)
-            {
-                return true;
-            }
-        }
-        else if(action == 3)
-        {
-            if(colums - x > 0)
-            {
-                return true;
-            }
-        }
-        else if(action == 4)
-        {
-            if(rows - x > 0 && colums - x > 0)
-            {
-                return true;
-            }
-        }
-        else if(action == 5)
-        {
-            if(rows - x > 0)
-            {
-                return true;
-            }
-        }
-        else if(action == 6)
-        {
-            if(rows - x > 0 && colums + x <= 8)
-            {
-                return true;
-            }
-        }
-        else if(action == 7)
-        {
-            if(colums + x <= 8)
-            {
-                return true;
-            }
-        }
-        else if(action == 8)
-        {
-            if(rows + x <= 8 && colums + x <= 8)
-            {
-                return true;
-            }
-        }
-        else
-        {
-            return false;
-        }
-        return false;
-    }
-    static void Move(int action, ref int rows, ref int colums, int x)
-    {
-        if(action == 1)
-        {
-            if(rows + x <= 8)
-            {
-                rows +=x ;
-            }
-        }
-        else if(action == 2)
-        {
-            if(rows + x <= 8 && colums - 1 > 0)
-            {
-                rows += x;
-                colums -= x;
-            }
-        }
-        else if(action == 3)
-        {
-            if(colums - x > 0)
-            {
-                colums -= x;
-            }
-        }
-        else if(action == 4)
-        {
-            if(rows - x > 0 && colums - x > 0)
-            {
-                rows -= x;
-                colums -= x;
-                
-            }
-        }
-        else if(action == 5)
-        {
-            if(rows - x > 0)
-            {
-                rows -= x;
-            }
-        }
-        else if(action == 6)
-        {
-            if(rows - x > 0 && colums + x <= 8)
-            {
-                rows -= x;
-                colums += x;
-            }
-        }
-        else if(action == 7)
-        {
-            if(colums + x <= 8)
-            {
-                colums += x;
-            }
-        }
-        else if(action == 8)
-        {
-            if(rows + x <= 8 && colums + x <= 8)
-            {
-                rows += x;
-                colums += x;
-            }
-        }
+       return new string(codeArray); 
     }
 }
-
